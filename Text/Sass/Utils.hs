@@ -8,6 +8,9 @@ module Text.Sass.Utils
   , listEntryNotNull
   , loopCList
   , copyToCList
+  , newCStringUtf8
+  , peekCStringUtf8
+  , withCStringUtf8
     -- * Other helpers
   , concatPaths
   , arrayRange
@@ -21,6 +24,8 @@ import           Control.Monad.Trans.State.Strict
 import           Data.List                        (intercalate)
 import           Foreign
 import           Foreign.C
+import qualified GHC.Foreign                      as GHC
+import qualified GHC.IO.Encoding                  as GHC
 import           System.FilePath                  (searchPathSeparator)
 
 -- Fix for transformers-0.3.0.0 (used by lts-2.17 in stack).
@@ -69,6 +74,19 @@ copyToCList create convert set list = do
     where
         addToList lst idx = convert >=> set lst idx
 
+-- | Marshal a Haskell string into a NUL terminated, UTF-8 encoded C string.
+newCStringUtf8 :: String -> IO CString
+newCStringUtf8 = GHC.newCString GHC.utf8
+
+-- | Marshal a NUL terminated, UTF-8 encoded C string into a Haskell string.
+peekCStringUtf8 :: CString -> IO String
+peekCStringUtf8 = GHC.peekCString GHC.utf8
+
+-- | Marshal a Haskell string into a NUL terminated, UTF-8 encoded C string
+-- using temporary storage.
+withCStringUtf8 :: String -> (CString -> IO a) -> IO a
+withCStringUtf8 = GHC.withCString GHC.utf8
+
 -- | Concatenates list of paths, separating entries with appropriate character.
 concatPaths :: [FilePath] -> FilePath
 concatPaths = intercalate [searchPathSeparator]
@@ -77,3 +95,4 @@ concatPaths = intercalate [searchPathSeparator]
 arrayRange :: (Num a, Integral a, Enum a) => a -> [a]
 arrayRange 0 = []
 arrayRange l = [0..l - 1]
+

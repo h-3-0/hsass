@@ -43,7 +43,7 @@ wrapFunction fn args _ _ = fromNativeValue args >>= fn >>= toNativeValue
 -- you should call 'clearNativeFunction' BEFORE you deallocate context.
 makeNativeFunction :: SassFunction -> IO Lib.SassFunctionEntry
 makeNativeFunction (SassFunction sig' fn) = do
-    sig <- newCString sig'
+    sig <- newCStringUtf8 sig'
     wrapped <- Lib.mkSassFunctionFn $ wrapFunction fn
     Lib.sass_make_function sig wrapped nullPtr
 
@@ -89,8 +89,8 @@ makeNativeImport :: SassImport -> IO Lib.SassImportEntry
 makeNativeImport el = do
     path <- maybeNew newCString $ importPath el
     base <- maybeNew newCString $ importPath el
-    source <- maybeNew newCString $ importSource el
-    srcmap <- maybeNew newCString $ importSourceMap el
+    source <- maybeNew newCStringUtf8 $ importSource el
+    srcmap <- maybeNew newCStringUtf8 $ importSourceMap el
     Lib.sass_make_import path base source srcmap
 
 -- | Frees native representation of 'SassImport'.

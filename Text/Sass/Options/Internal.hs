@@ -14,7 +14,6 @@ import           Control.Applicative          ((<$>))
 #endif
 import           Control.Monad                ((>=>))
 import           Foreign
-import           Foreign.C
 import           Text.Sass.Functions
 import           Text.Sass.Functions.Internal
 import           Text.Sass.Options
@@ -31,8 +30,8 @@ copyOptionsToNative opt ptr = do
     Lib.sass_option_set_source_map_contents ptr (sassSourceMapContents opt)
     Lib.sass_option_set_omit_source_map_url ptr (sassOmitSourceMapUrl opt)
     Lib.sass_option_set_is_indented_syntax_src ptr (sassIsIndentedSyntax opt)
-    withCString (sassIndent opt) (Lib.sass_option_set_indent ptr)
-    withCString (sassLinefeed opt) (Lib.sass_option_set_linefeed ptr)
+    withCStringUtf8 (sassIndent opt) (Lib.sass_option_set_indent ptr)
+    withCStringUtf8 (sassLinefeed opt) (Lib.sass_option_set_linefeed ptr)
     withOptionalCString (sassInputPath opt)
         (Lib.sass_option_set_input_path ptr)
     withOptionalCString (sassOutputPath opt)

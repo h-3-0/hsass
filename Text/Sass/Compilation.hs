@@ -94,7 +94,7 @@ instance Show (SassExtendedResult a) where
 instance SassResult String where
     toSassResult ptr = withForeignPtr ptr $ \ctx -> do
         result <- Lib.sass_context_get_output_string ctx
-        !result' <- peekCString result
+        !result' <- peekCStringUtf8 result
         return result'
 
 -- | Only compiled code (UTF-8 encoding).
@@ -173,7 +173,7 @@ resultSourcemap ex = withForeignPtr (resultContext ex) $ \ctx -> do
     cstr <- Lib.sass_context_get_source_map_string ctx
     if cstr == nullPtr
         then return Nothing
-        else Just <$> peekCString cstr
+        else Just <$> peekCStringUtf8 cstr
 
 -- | Common code for 'compileFile' and 'compileString'.
 compileInternal :: (SassResult b)
@@ -215,7 +215,7 @@ compileString :: SassResult a
               -> SassOptions -- ^ Compilation options.
               -> IO (Either SassError a) -- ^ Error or output string.
 compileString str opts = do
-    cdata <- newCString str
+    cdata <- newCStringUtf8 str
     compileInternal cdata opts
         Lib.sass_make_data_context
         Lib.sass_compile_data_context
