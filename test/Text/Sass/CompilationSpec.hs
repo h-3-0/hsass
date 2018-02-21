@@ -39,6 +39,10 @@ compilationSpec = do
         compileString "foo { margin: 21px * 2; }" opts `shouldReturn`
             Right "foo{margin:42px}\n"
 
+    it "should correctly handle non-ASCII characters" $ do
+        compileString "h1:before { content: '\9660'; }" def `shouldReturn`
+            Right "@charset \"UTF-8\";\nh1:before {\n  content: '\9660'; }\n"
+
     it "should compile file" $
         withSystemTempFile "styles.sass" $ \p h -> do
             hPutStr h "foo { margin: 21px * 2; }"

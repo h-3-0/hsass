@@ -10,10 +10,15 @@ barFunction :: SassValue -> IO SassValue
 barFunction (SassList [SassString "a"] _) = return $ SassNumber 1 "px"
 barFunction _ = return $ SassError "invalid arguments"
 
+strIdFunction :: SassValue -> IO SassValue
+strIdFunction (SassList [SassString s] _) = return $ SassString s
+strIdFunction _ = return $ SassError "invalid arguments"
+
 functions :: [SassFunction]
 functions =
-  [ SassFunction "foo()"   fooFunction
-  , SassFunction "bar($n)" barFunction
+  [ SassFunction "foo()"     fooFunction
+  , SassFunction "bar($n)"   barFunction
+  , SassFunction "strId($s)" strIdFunction
   ]
 
 inclContent :: String
@@ -49,6 +54,11 @@ spec = do
         let opts = def { sassFunctions = Just functions }
         compileString "a { margin: bar('a'); }" opts `shouldReturn`
             Right "a {\n  margin: 1px; }\n"
+
+    it "should correctly handle non-ASCII characters" $ do
+        let opts = def { sassFunctions = Just functions }
+        compileString "h1:before { content: '\9660'; }" opts `shouldReturn`
+            Right "@charset \"UTF-8\";\nh1:before {\n  content: '\9660'; }\n"
 
     it "should correctly inject header" $ do
         let opts = def { sassHeaders = Just headers, sassInputPath = Just "path" }
